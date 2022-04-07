@@ -7,12 +7,12 @@
 ## 从成功值
 
 使用 `ZIO.succeed` 方法，你可以创建具有指定值的一个成功的 Effect ：
-```
+```scala
 val s1 = ZIO.Succeed(42)
 ```
 
 你也可以使用 `ZIO` 类型别名的伴身对象里的方法：
-```
+```scala
 val s2: Task[Int] = Task.succeed(42)
 ```
 
@@ -21,14 +21,14 @@ val s2: Task[Int] = Task.succeed(42)
 ## 从故障值
 
 使用 `ZIO.fail` 方法，你可以创建一个建模为失败的 Effect ：
-```
+```scala
 val f1 = ZIO.fail("Uh oh!")
 ```
 
 对于 `ZIO` 数据类型，错误类型不存在限制。你可以在你的应用程序中使用合适使用字符串、异常或者自定义类型。
 
 许多应用程序将扩展了 `Throwable` 或 `Exception` 的类对故障进行建模：
-```
+```scala
 val f2 = Task.fail(new Exception("Uh oh!"))
 ```
 
@@ -41,17 +41,17 @@ Scala 的标准库包含大量数据类型，它们能够被转换为 ZIO Effect
 ### Option
 
 `Option` 可以使用 `ZIO.fromOption` 转换为 ZIO Effect ：
-```
+```scala
 val zoption: IO[Option[Nothing], Int] = ZIO.fromOption(Some(2))
 ```
 
 所产的 Effect 的错误类型是 `Option[Nothing]]`，它没有提供为什么该值不存在的信息。你可以使用 `ZIO#mapError` 将 `Option[Nothing]` 改为更具体的错误类型。
-```
+```scala
 val zoption2: IO[String, Int] = zoption.mapError(_ => "It wasn't there!")
 ```
 
 你也可以很容易地将它与其它操作符组合，同时保留结果的可选性质（类似于 `OptionT`）
-```
+```scala
 val maybeId: IO[Option[Nothing], String] = ZIO.fromOption(Some("abc123"))
 def getUser(userId: String): IO[Throwable, Option[User]] = ???
 def getTeam(teamId: String): IO[Throwable, Team] = ???
@@ -66,7 +66,7 @@ val result: IO[Throwable, Option[(User, Team)]] = (for {
 ### Either
 
 `Either` 可以使用 `ZIO.fromEither` 转换为 ZIO Effect ：
-```
+```scala
 val zeither = ZIO.fromEither(Right("Success!"))
 ```
 
@@ -75,7 +75,7 @@ val zeither = ZIO.fromEither(Right("Success!"))
 ### Try
 
 `Try` 可以使用 `ZIO.fromTry` 转换为 ZIO Effect ：
-```
+```scala
 import scala.util.Try
 
 val ztry = ZIO.fromTry(Try(42 / 0))
@@ -86,7 +86,7 @@ val ztry = ZIO.fromTry(Try(42 / 0))
 ### Future
 
 `Future` 可以使用 `ZIO.fromFuture` 转换为 ZIO Effect ：
-```
+```scala
 import scala.concurrent.Future
 
 lazy val future = Future.successful("Hello!")
@@ -110,7 +110,7 @@ ZIO 可以转换同步及异步副作用为 ZIO Effect （纯值）。
 ### 同步副作用
 
 一个同步副作用可以使用 `ZIO.attempt` 转换为 ZIO Effect ：
-```
+```scala
 import scala.io.StdIn
 
 val readLine: Task[String] =
@@ -120,13 +120,13 @@ val readLine: Task[String] =
 所产生 Effect 的错误类型总是 `Throwable`，因为副作用可能抛出具有 `Throwable` 类型的任何值的异常。
 
 如果书籍给定副作用不会抛出任何异常，则副作用可以使用 `ZIO.succeed` 转换为 ZIO Effect ：
-```
+```scala
 def printLine(line: String): UIO[Unit] =
   ZIO.succeed(println(line))
 ```
 
 当使用 `ZIO.succeed` 时你应该小心——当不确定副作用是否总是产生时，首先 `ZIO.attempt` 来转换副作用。
-```
+```scala
 import java.io.IOException
 
 val readLine2: IO[IOException, String] =
@@ -136,7 +136,7 @@ val readLine2: IO[IOException, String] =
 ### 异步副作用
 
 一个基于回调 API 的异步副作用可以使用 `ZIO.async` 转换为 ZIO Effect ：
-```
+```scala
 object legacy {
   def login(
     onSuccess: User => Unit,
@@ -161,7 +161,7 @@ val login: IO[AuthError, User] =
 ZIO 提供了 `zio.Blocking`，它可用安全地将阻塞副作用转换为 ZIO Effect 。
 
 一个阻塞副作用可以使用 `attemptBlocking` 方法直接转换为阻塞的 ZIO Effect 。
-```
+```scala
 val sleeping =
   ZIO.attemptBlocking(Thread.sleep(Long.MaxValue))
 ```
@@ -171,7 +171,7 @@ val sleeping =
 使用 `attemptBlockingInterrupt` 方法调用 `Thread.interrupt` 可以中断副作用。 
 
 一些阻塞副作用只能通过调用取消 Effect 来中断。你可以使用 `attemptBlockingCancelable` 方法转换这些副作用：
-```
+```scala
 import java.net.ServerSocket
 import zio.UIO
 
@@ -180,7 +180,7 @@ def accept(l: ServerSocket) =
 ```
 
 如果副作用已经被转换为 ZIO Effect ，则可以使用 `blocking` 方法确保 Effect 在阻塞线程池上执行，而非使用 `attemptBlocking`：
-```
+```scala
 import scala.io.{ Codec, Source }
 
 def download(url: String) =

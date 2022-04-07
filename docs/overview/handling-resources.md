@@ -1,5 +1,7 @@
 # 处理资源
 
+*原文：[https://zio.dev/next/overview/overview_handling_resources](https://zio.dev/next/overview/overview_handling_resources)*
+
 本节介绍一些在使用 ZIO 完全处理资源的常见方法。
 
 ZIO 的资源管理特性跨同步、异步、并发和其它 Effect 类型工作，即使在应用程序中存在故障、中断或缺陷的情况下也能提供强有力的保证。
@@ -40,7 +42,7 @@ try {
 
 ZIO 使用 `ZIO#acquireRelease` 封装了这种常见模式，允许你指定一个 *acquire* Effect 获取资源；一个 *release* Effect 释放资源；和一个 *use* Effect 来使用资源。
 
-即使在出现错误或中断的情况下，释放 Effect 也能保证被运行时系统执行。
+  即使在出现错误或中断的情况下，释放 Effect 也保证由运行时系统执行。
 
 ```scala
 val groupedFileData: IO[IOException, Unit] = 
@@ -52,5 +54,5 @@ val groupedFileData: IO[IOException, Unit] =
   }
 ```
 
-像 `ensuring`，获取、释放具有组合语义，所以如果一个获取、释放嵌套在另一个获取、释放中，并且外部资源被获取，那么即使内部释放失败，也将始终调用外部释放。
+像 `ensuring`，`acquireRelease` 具有组合语义，因此，如果一个 `acquireRelease` 嵌套在另一个获取释放中，并且获得外部资源，那么即使内部释放失败，也将始终调用外部释放。
 

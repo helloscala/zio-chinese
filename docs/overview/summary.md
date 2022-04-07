@@ -18,7 +18,7 @@ ZIO 是一个基于纯函数式编程的异步和并发编程库。
 例如： Effect 类型 `ZIO[Any, IOException, Byte]` 不需要环境，也许以 `IOException` 类型失败，或者以 `Byte` 类型成功。
 
 类型ZIO[R，E，A]的值类似于以下函数类型的有效版本：
-```
+```scala
 R => Either[E, A]
 ```
 
