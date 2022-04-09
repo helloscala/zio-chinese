@@ -1,4 +1,6 @@
-# 并发基础
+# 基本并发
+
+*原文：[https://zio.dev/next/overview/overview_basic_concurrency](https://zio.dev/next/overview/overview_basic_concurrency)*
 
 ZIO 对使用纤程（*fiber*）的并发性具有低级支持。虽然纤程非常强大，但它们是很低级的工具。为了提高生产力，ZIO 提供了基于纤程的高级操作。
 
