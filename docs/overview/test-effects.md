@@ -1,5 +1,7 @@
 # 测试 Effect
 
+*原文：[https://zio.dev/next/overview/overview_testing_effects](https://zio.dev/next/overview/overview_testing_effects)*
+
 测试函数式 Effect 有许多方法，包括使用 free monads、tagless-final 和带环境的 Effect。虽然这些所有方法都与 ZIO 兼容，但是最简单和符合人类直观的是 *带环境的 Effect*。
 
 本节介绍带环境的 Effect，并向你展示如何使用它们编写可测试的函数式代码。
@@ -8,7 +10,7 @@
 
 ZIO 数据类型有一个 `R` 类型参数，它用于描述 Effect 所需的 *环境* 类型。
 
-ZIO Effect 可以使用 `ZIO.environment` 访问环境，它提供直接访问环，并作为一个 `R` 类型的值。
+ZIO Effect 可以使用 `ZIO.environment` 访问环境，它可以提供以一个 `R` 类型的值来直接访问环境。
 
 ```scala
 for {
@@ -17,7 +19,7 @@ for {
 } yield env
 ```
 
-环境不并像整数那样是一个原始值。它可以更复杂，就像 `trait` 或 `case class`。
+环境不只像整数那样是一个原始值。它可以更复杂，就像 `trait` 或 `case class`。
 
 当环境是带有字段的类型时，`ZIO.access` 方法可以在单个方法调用中访问环境的指定部分：
 
@@ -48,13 +50,13 @@ val tablesAndColumns: ZIO[DatabaseOps, Throwable, (List[String], List[String])] 
 
 当从环境中访问 Effect 时，如上例所示，该 Effect 称为 *环境 Effect*。
 
-然后，我们将看到环境 Effect 是如果提供简单的方法来测试 ZIO 应用程序。
+稍后，我们将看到环境 Effect 是如何为测试 ZIO 应用程序提供一个简单方法的。
 
 ### 提供环境
 
-如果不首先提供环境，就不能运行需要环境的 Effect。
+如果不首先提供它们的环境，就不能运行需要环境的 Effect。
 
-提供一个 Effect 所需环境的最简单方法是使用 `ZIO#provide` 方法：
+提供一个 Effect 所需环境的最简单方式是使用 `ZIO#provide` 方法：
 
 ```scala
 val square: URIO[Int, Int] = 
@@ -67,15 +69,15 @@ val result: UIO[Int] = square.provideEnvironment(ZEnvironment(42))
 
 一旦为 Effect 提供了所需环境，那么你就会得到一个环境类型为 `Any` 的 Effect，表明它的要求已被满足。
 
-`ZIO.environmentWithZIO` 和 `ZIO#provide` 的组合是充分使用环境 Effect 以方便测试的所必需的。
+`ZIO.environmentWithZIO` 和 `ZIO#provide` 的组合提供了充分利用环境 Effect 以便于测试所需的一切。
 
 ## 环境 Effect
 
 环境 Effect 背后的基本理念是对 *接口* 进行 *编程*，而非 *实现*。在函数式 Scala 的场景中，接口不包含任何执行副作用的方法，尽管它们可以包含返回函数式 Effect 的方法。
 
-我们不需要在整个代码库中手动传递接口，不需要使用依赖注入来注入接口，也不需要使用不连贯的隐含进行线程化，而是使用 *ZIO 环境* 来完成繁重的工作，这导致了优雅、可推理、无痛的代码。
+我们使用 *ZIO 环境* 来完成繁重的工作，而不是在整个代码库中手动传递接口、不需要使用依赖注入来注入接口、也不需要使用不连贯的隐式对接口进行线程化，从而生成优雅、可推断且无痛的代码。
 
-在本节，我们将探索使用环境 Effect 如何开发一个可测试的数据库服务。
+在本节中，我们将探讨如何通过开发一个可测试的数据库服务来使用环境 Effect。
 
 ### 定义服务
 
@@ -93,7 +95,7 @@ trait Database {
 }
 ```
 
-在这个例子中，`Database` 是 *模块*，它包含 `Database.Service` 服务。该服务只是位于模块的伴身对象内的一个普通接口，包含提供服务 *能力* 的函数。
+在这个例子中，`Database` 是 *模块*，它包含 `Database.Service` *服务*。该服务只是位于模块的伴身对象内的一个普通接口，包含提供服务 *能力* 的函数。
 
 ### 提供助手（Provide Helpers）
 
@@ -109,7 +111,7 @@ object db {
 }
 ```
 
-这些辅助函数不是必需的，因为我们可以通过 `ZIO.serviceWithZIO` 直接访问数据库模块，但这些助手很容易编写并使代码更简单。
+这些辅助函数不是必需的，因为我们可以通过 `ZIO.serviceWithZIO` 直接访问数据库模块，但这些助手很容易编写并使代码（理解）更简单。
 
 ### 使用服务
 
@@ -156,13 +158,13 @@ def main2: Task[Unit] =
   main.provideEnvironment(ZEnvironment(DatabaseLive))
 ```
 
-由此生成的 Effect 不需要环境，因此现在可以使用 ZIO 运行时执行。
+生成的 Effect 不需要环境，因此现在可以使用 ZIO 运行时执行。
 
 ### 实现测试服务
 
 为了测试与数据库交互的代码，我们不想与真实的数据库进行交互，因为我们的测试很慢且不稳定，即使我们的应用逻辑是正确的也会随机失败。
 
-尽管你可以使用 mock 库来创建测试模块，但在这个里，我们将简单的直接创建测试模块以表明这里没有魔法（注：代码是可预测的）：
+尽管你可以使用 mock 库来创建测试模块，但在这里，我们将简单的直接创建测试模块来表明不涉及任何魔法（注：代码是可预测、易理解的）：
 
 ```scala
 class TestService extends Database.Service {
